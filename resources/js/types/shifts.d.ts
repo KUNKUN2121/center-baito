@@ -1,10 +1,10 @@
 export interface Schedule {
     id?: number;
     user_id?: number;
-    work_date: string; // YYYY-MM-DD
     status: Status;
-    start_time: string;
-    end_time: string;
+    start_datetime: string;
+    end_datetime: string;
+    notes?: string;
 }
 
 export interface SelectedItem {

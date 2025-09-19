@@ -17,6 +17,8 @@ interface Props {
 const DayCell: React.FC<Props> = ({ date, currentMonth, schedule, userId, isClosed, onClick}) => {
     const isMe = schedule && schedule.user_id === userId;
 
+    console.log("DayCell schedule:", schedule);
+
     const getDayStyle = () => {
         let bg = "#fff";
         const currentStatus = schedule?.status;
@@ -61,9 +63,9 @@ const DayCell: React.FC<Props> = ({ date, currentMonth, schedule, userId, isClos
             // ユーザIDが一致するスケージュールを取得
             isMe && schedule ? (
                 <>
-                <p>{formatTime(schedule.start_time)}</p>
+                <p>{formatTime(schedule.start_datetime.split(" ")[1].substring(0, 5))}</p>
                 <span></span>
-                <p>{formatTime(schedule.end_time)}</p>
+                <p>{formatTime(schedule.end_datetime.split(" ")[1].substring(0, 5))}</p>
             </>
             ) : (
                 <></>

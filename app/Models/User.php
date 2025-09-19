@@ -47,7 +47,7 @@ class User extends Authenticatable
         ];
     }
 
-    
+
     // リレーション設定
     public function shifts()
     {
@@ -60,6 +60,11 @@ class User extends Authenticatable
     public function shiftChangeRequests()
     {
         return $this->hasMany(ShiftChangeRequest::class, 'requester_user_id');
+    }
+
+    public function shiftSubmissions()
+    {
+        return $this->hasMany(ShiftSubmission::class);
     }
 
 }

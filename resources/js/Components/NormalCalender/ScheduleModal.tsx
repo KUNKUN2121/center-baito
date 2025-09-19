@@ -37,26 +37,23 @@ const ScheduleModal: React.FC<Props> = ({ date, onClose, onSubmit,schedules,dele
   const [endTime, setEndTime] = useState("21:00");
 
     // 既存のスケジュールがあるかを返す関数
-    const hasSchedule = (work_date: string) => {
-        return schedules.some((schedule) => schedule.work_date === work_date);
+    const hasSchedule = () => {
+        return schedules.length > 0;
     };
 
   useEffect(() => {
-    const existingSchedule = schedules.find(
-      (schedule) => schedule.work_date === format(date, "yyyy-MM-dd")
-    );
-    if (existingSchedule) {
-      setStartTime(existingSchedule.start_time);
-      setEndTime(existingSchedule.end_time);
+    if (schedules.length > 0) {
+      const existingSchedule = schedules[0];
+      setStartTime(format(new Date(existingSchedule.start_datetime), "HH:mm"));
+      setEndTime(format(new Date(existingSchedule.end_datetime), "HH:mm"));
     }
   }, [date, schedules]);
 
   const handleSubmit = () => {
     onSubmit({
-        work_date: format(date, "yyyy-MM-dd"),
         status: "draft",
-        start_time: startTime,
-        end_time: endTime,
+        start_datetime: `${format(date, "yyyy-MM-dd")} ${startTime}:00`,
+        end_datetime: `${format(date, "yyyy-MM-dd")} ${endTime}:00`,
     });
   };
   const handleDelete = (date : Date) => {
@@ -69,7 +66,7 @@ const ScheduleModal: React.FC<Props> = ({ date, onClose, onSubmit,schedules,dele
     const reversedSchedules = [...schedules].reverse();
     // 同じ時間は除外
     const uniqueSchedules = reversedSchedules.filter((schedule, index, self) =>
-      index === self.findIndex((s) => s.start_time === schedule.start_time && s.end_time === schedule.end_time)
+      index === self.findIndex((s) => s.start_datetime === schedule.start_datetime && s.end_datetime === schedule.end_datetime)
     );
     return uniqueSchedules
   }
@@ -91,25 +88,24 @@ const ScheduleModal: React.FC<Props> = ({ date, onClose, onSubmit,schedules,dele
                 <button
                     key={index}
                     onClick={() => {
-                        setStartTime(schedule.start_time);
-                        setEndTime(schedule.end_time);
+                        setStartTime(format(new Date(schedule.start_datetime), "HH:mm"));
+                        setEndTime(format(new Date(schedule.end_datetime), "HH:mm"));
                         onSubmit({
-                            work_date: format(date, "yyyy-MM-dd"),
                             status: "draft",
-                            start_time: schedule.start_time,
-                            end_time: schedule.end_time,
+                            start_datetime: schedule.start_datetime,
+                            end_datetime: schedule.end_datetime,
                         });
                         onClose();
                     } }
                 >
-                    <span><span css={hisyoryStartTimeCss}>{formatTime(schedule.start_time)}</span> - {formatTime(schedule.end_time)}</span>
+                    <span><span css={hisyoryStartTimeCss}>{formatTime(schedule.start_datetime.split(' ')[1])}</span> - {formatTime(schedule.end_datetime.split(' ')[1])}</span>
                 </button>
             ))}
         </div>
         <div css={buttonWapperCss}>
             <button onClick={onClose} style={{ marginLeft: "10px" }}>閉じる</button>
             {
-                hasSchedule(format(date, "yyyy-MM-dd")) ? (
+                hasSchedule() ? (
                     <>
                     <button onClick={() => handleDelete(date)} style={{ marginLeft: "10px" }}>削除</button>
                     <button onClick={handleSubmit}>変更</button>

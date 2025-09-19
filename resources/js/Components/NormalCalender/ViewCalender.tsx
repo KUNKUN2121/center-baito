@@ -15,6 +15,7 @@ import { ClosedDay, Schedule } from "@/types/shifts";
 import { Alert } from "@mui/material";
 import { on } from "events";
 import { formatTime } from "@/Feutures/format";
+import axios from "axios";
 
 
 const wapperCss = css`
@@ -58,10 +59,31 @@ const ViewCalender = ({
         setSelectedDate(null);
     };
 
+    // postする
+    // 新しい希望シフトを追加する関数
     const handleSubmitModal = (newSchedule: Omit<Schedule, 'id' | 'user_id'>) => {
-        console.log("Submit:", newSchedule);
-        // ここで実際にシフトを更新する処理を呼び出す
-        // 例: handleChangeShift(newSchedule as Schedule);
+        // POSTする前にdataを更新
+        handleChangeShift({
+            ...newSchedule,
+            user_id: userId,
+        } as Schedule);
+
+        axios.post('/api/shifts/create', newSchedule, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            withCredentials: true, // クッキーを含める
+        })
+        .then(response => {
+            // 成功時の処理 dataを更新する
+            console.log("Shift created successfully:", response.data);
+        })
+        .catch(error => {
+            console.error("There was an error creating the shift:", error);
+        });
+
+
         setSelectedDate(null);
     };
 
@@ -70,6 +92,8 @@ const ViewCalender = ({
         // ここで実際にシフトを削除する処理を呼び出す
         setSelectedDate(null);
     }
+
+    console.log("schedules in ViewCalender:", schedules);
 
   const start = startOfWeek(startOfMonth(currentDate));
   const end = endOfWeek(endOfMonth(currentDate));
@@ -92,8 +116,9 @@ const ViewCalender = ({
           </div>
         ))}
         {days.map((day) => {
-          const key = format(day, "yyyy-MM-dd");
-          const schedule = schedules.find((s) => s.work_date === key);
+        const key = format(day, "yyyy-MM-dd");
+        const schedule = schedules.find((s) => s.start_datetime.startsWith(key));
+        // console.log("Matching schedule for", key, ":", schedule);
           const isClosed = closedDays.some((closedDay) => closedDay.date === key);
           return (
             <DayCell
@@ -114,7 +139,8 @@ const ViewCalender = ({
             date={selectedDate}
             onClose={handleCloseModal}
             onSubmit={handleSubmitModal}
-            schedules={schedules.filter(s => s.work_date === format(selectedDate, "yyyy-MM-dd"))}
+            // schedules={schedules.filter(s => s.start_datetime === format(selectedDate, "yyyy-MM-dd"))}
+            schedules={schedules.filter(s => s.start_datetime.startsWith(format(selectedDate, "yyyy-MM-dd")))}
             deleteSchedule={handleDeleteSchedule}
         />
       )}

@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShiftSubmissionController;
+use App\Models\Shift;
+use App\Models\ShiftSubmission;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -30,3 +34,29 @@ Route::get('/shifts/request', function () {
 })->middleware(['auth', 'verified'])->name('shifts.request');
 
 require __DIR__.'/auth.php';
+
+
+
+// テスト用のapi (認証付き)
+Route::middleware('auth')->group(function () {
+    // apiのprefix groupをつくる
+    Route::group(['prefix' => 'api'], function () {
+        Route::get('/user', function (Request $request) {
+            return auth()->user();
+        });
+
+        Route::get('shifts/request', [ShiftSubmissionController::class, 'index']);
+        Route::post('shifts/create', [ShiftSubmissionController::class, 'create']);
+
+    });
+
+    // シフト希望提出のCRUD操作
+    Route::apiResource('shift-submissions', ShiftSubmissionController::class);
+});
+
+
+// Route::post('/api2/shifts/create', [ShiftSubmissionController::class, 'create']);
+Route::post('/aaaa/shifts/create', function (Request $request) {
+    // test
+    return response()->json(['message' => 'Shift created successfully'], 201);
+});
