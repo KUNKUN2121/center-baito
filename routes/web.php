@@ -24,4 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// shifts/request
+Route::get('/shifts/request', function () {
+    return Inertia::render('Shifts/Request');
+})->middleware(['auth', 'verified'])->name('shifts.request');
+
 require __DIR__.'/auth.php';
