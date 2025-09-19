@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('shift_submissions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->date('shift_datetime');
-            $table->date('end_datetime');
+            $table->dateTime('start_datetime');
+            $table->dateTime('end_datetime');
             $table->enum('status', ['draft', 'tentative', 'confirm']);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
