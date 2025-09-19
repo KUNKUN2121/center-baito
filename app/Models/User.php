@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',
     ];
 
     /**
@@ -46,6 +47,7 @@ class User extends Authenticatable
         ];
     }
 
+    
     // リレーション設定
     public function shifts()
     {

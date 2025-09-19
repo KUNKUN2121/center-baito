@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import NavLink from '@/Components/NavLink';
 import { Head } from '@inertiajs/react';
 
 export default function Dashboard() {
@@ -16,7 +17,9 @@ export default function Dashboard() {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                         <div className="p-6 text-gray-900 dark:text-gray-100">
-                            You're logged in!
+                            <NavLink href={route('shifts.request')} active={route().current('shifts.request')}>
+                                シフト提出
+                            </NavLink>
                         </div>
                     </div>
                 </div>
