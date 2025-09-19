@@ -45,4 +45,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // リレーション設定
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class);
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    public function shiftChangeRequests()
+    {
+        return $this->hasMany(ShiftChangeRequest::class, 'requester_user_id');
+    }
+
 }
