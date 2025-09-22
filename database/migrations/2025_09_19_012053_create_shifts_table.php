@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('schedule_id');
-            $table->dateTime('start_time');
-            $table->dateTime('end_time');
+            $table->dateTime('start_datetime');
+            $table->dateTime('end_datetime');
             $table->text('notes')->nullable();
             // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             // 休憩時間どうする？

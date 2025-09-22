@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react';
 
 const Edit: React.FC = () => {
 
-    const [schedule, setSchedule] = useState([]);
+    const [schedule, setSchedule] = useState<any[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [shiftSubmissions, setShiftSubmissions] = useState<(Submission)[]>([]);
     const [confirmedShifts, setConfirmedShifts] = useState<Submission[]>([]);
@@ -22,6 +22,7 @@ const Edit: React.FC = () => {
 
 
     const [modalData, setModalData] = useState<Submission | null>(null);
+    const [editShift, setEditShift] = useState<Submission | null>(null);
 
 
     useEffect(() => {
@@ -34,7 +35,7 @@ const Edit: React.FC = () => {
         axios.get('/api/shifts/admin/edit/show')
             .then(response => {
                 console.log("Fetched user data:", response.data);
-                setSchedule(response.data.schedule);
+                setSchedule(response.data.schedules);
                 setUsers(response.data.users);
                 setShiftSubmissions(response.data.shiftSubmissions);
                 setConfirmedShifts(response.data.confirmedShifts);
@@ -45,46 +46,110 @@ const Edit: React.FC = () => {
             });
     }
 
-    // シフト情報を送信
-    function postShift() {
-        axios.post('/api/shifts/admin/edit/post', {
-            schedule,
-            users,
-            shiftSubmissions,
+    // シフトを保存する
+    const confirmShift = (submission: Submission) => {
+
+        console.log("confirmShift", submission);
+
+
+        // 変更前データをバックアップ
+        const previousConfirmedShifts = [...confirmedShifts];
+
+        // 既に存在するか確認
+
+        const exists = confirmedShifts.some(
+            s => s.user_id === submission.user_id &&
+                s.schedule_id === submission.schedule_id &&
+                s.id === submission.id
+        );
+        if (exists) {
+            // 既存のシフトを更新
+            console.log("更新")
+            setConfirmedShifts(confirmedShifts.map(s => (s.user_id === submission.user_id && s.schedule_id === submission.schedule_id) ? submission : s));
+        } else {
+            // 新しいシフトを追加
+            console.log("追加")
+            setConfirmedShifts([...confirmedShifts, submission]);
+        }
+        setIsModalOpen(false);
+
+        // サーバーに保存
+        // // schedule_id, user_id, start_datetime, end_datetime, notes を送信
+        axios.post('/api/shifts/admin/edit/confirm', {
+            user_id: submission.user_id,
+            schedule_id: submission.schedule_id,
+            start_datetime: submission.start_datetime,
+            end_datetime: submission.end_datetime,
+            notes: submission.notes,
         })
             .then(response => {
-                console.log("Post response:", response.data);
-                // 必要に応じて状態を更新
-            }
-            )
+                console.log("Shift confirmed successfully:", response.data);
+                // 必要に応じてUIを更新
+            })
             .catch(error => {
-                console.error("Error posting data:", error);
+                alert("シフトの保存に失敗しました。");
+                // エラーが発生した場合、変更前のデータに戻す
+                setConfirmedShifts(previousConfirmedShifts);
             });
+
     }
 
 
 
-    // シフトをクリックしたときの処理
+    // モーダルを開いた時
     const handleShiftClick = (userId: number, date: string) => {
-        console.log("Clicked shift for user:", userId, "on date:", date);
-        // ここでモーダルを開くなどの処理を行う
-        // setSelectedShift({ userId, date });
-        setIsModalOpen(true);
+
+        // 募集シフトのIDを取得。通常一つしかないため、最初の要素を使用
+        const scheduleId = schedule.length > 0 ? schedule[0].id : null;
+
+
+        if (!scheduleId) {
+            console.error("No schedule found for this date");
+            return;
+        }
+
+        // 希望シフトを探す
+        const baseSubmission = shiftSubmissions.find(
+            (s) => s.user_id === userId && s.start_datetime.startsWith(date)
+        );
+
+        // 確定シフトを探す
+        const confirmed = confirmedShifts.find(
+            (s) => s.user_id === userId && s.start_datetime.startsWith(date)
+        );
+
+        // 条件分岐
+        // 確定シフトがあればそれを編集
+        if(confirmed){
+            setEditShift(confirmed);
+            setModalData(confirmed);
+        }
+        else if (baseSubmission){
+            setEditShift(baseSubmission);
+            setModalData(baseSubmission);
+        }
+        else{
+            // どちらもなければ新規作成モード
+            setEditShift({
+                user_id: userId,
+                schedule_id: scheduleId,
+                start_datetime: date + "T09:00:00", // 仮の開始時間
+                end_datetime: date + "T17:00:00",   // 仮の終了時間
+                status: 'draft',
+            });
+            setModalData(null);
+        }
+
         setSelectedShift({ userId, date });
-        const modalSubmissions = shiftSubmissions.find(value =>
-            value.user_id === userId &&
-            value.start_datetime.startsWith(date)
-        )
-        setModalData(modalSubmissions ?? null);
-    }
+        setIsModalOpen(true);
+    };
 
 
 
 
 
 
-
-    if(users.length === 0){
+    if (users.length === 0) {
         return <div>Loading...</div>;
     }
 
@@ -97,40 +162,83 @@ const Edit: React.FC = () => {
                     shiftSubmissions={shiftSubmissions}
                     users={users}
                     onShiftClick={handleShiftClick}
+                    confirmedShifts={confirmedShifts}
                 ></ViewRowCalender>
             </div>
             {/* モーダル */}
             {isModalOpen && (
-            <EditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="シフト編集">
-                <div css={modalContentWapper}>
-                    <p>{selectedShift?.date}</p>
-                    <h2>{users.find(user => user.id === selectedShift?.userId)?.name} さん</h2>
+                <EditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="シフト編集">
+                    <div css={modalContentWapper}>
+                        <p>{selectedShift?.date}</p>
+                        <h2>{users.find(user => user.id === selectedShift?.userId)?.name} さん</h2>
 
-                    {/* 希望シフト */}
-                    <span>希望シフト: </span>
-                    {modalData ? (
+                        {/* 希望シフト */}
+                        <span>希望シフト: </span>
+                        {modalData ? (
+                            <div>
+                                <span> {format(new Date(modalData.start_datetime), 'HH:mm')} - {format(new Date(modalData.end_datetime), 'HH:mm')}</span>
+                                <p>メモ: {modalData.notes}</p>
+                            </div>
+                        ) : (
+                            <p>この日の希望シフトはありません。</p>
+                        )}
+                        {/* 入力欄 */}
                         <div>
-                            <span> {format(new Date(modalData.start_datetime), 'HH:mm')} - {format(new Date(modalData.end_datetime), 'HH:mm')}</span>
-                            <p>メモ: {modalData.notes}</p>
+                            <label>
+                                開始時間:
+                                <input
+                                    type="time"
+                                    value={editShift ? format(new Date(editShift.start_datetime), "HH:mm") : ""}
+                                    onChange={(e) => {
+                                        if (editShift && selectedShift) {
+                                            const newDateTime = `${selectedShift.date}T${e.target.value}:00`;
+                                            setEditShift({
+                                                ...editShift,
+                                                start_datetime: newDateTime,
+                                            });
+                                        }
+                                    }}
+                                />
+                            </label>
+
+                            <label>
+                                終了時間:
+                                <input
+                                    type="time"
+                                    value={editShift ? format(new Date(editShift.end_datetime), "HH:mm") : ""}
+                                    onChange={(e) => {
+                                        if (editShift && selectedShift) {
+                                            const newDateTime = `${selectedShift.date}T${e.target.value}:00`;
+                                            setEditShift({
+                                                ...editShift,
+                                                end_datetime: newDateTime,
+                                            });
+                                        }
+                                    }}
+                                />
+                            </label>
+
+                            <label>
+                                メモ:
+                                <input
+                                    type="text"
+                                    value={editShift?.notes || ''}
+                                    onChange={(e) => {
+                                        if (editShift) {
+                                            setEditShift({
+                                                ...editShift,
+                                                notes: e.target.value,
+                                            });
+                                        }
+                                    }}
+                                />
+                            </label>
                         </div>
-                    ) : (
-                        <p>この日の希望シフトはありません。</p>
-                    )}
 
 
-
-
-
-                    {/* ユーザ情報、日付、希望シフトを表示 */}
-                    {/*
-                    <p>日付: {selectedShift?.date}</p>
-                    <p>希望シフト: {format(modalData!.start_datetime, 'HH:mm')} - {format(modalData!.end_datetime, 'HH:mm')}</p>
-                    <p>メモ: {modalData?.notes}</p> */}
-
-
-                    <button onClick={postShift}>保存</button>
-                </div>
-            </EditModal>
+                        <button onClick={() => editShift && confirmShift(editShift)}>保存</button>
+                    </div>
+                </EditModal>
             )}
         </div>
     );
@@ -147,6 +255,3 @@ const modalContentWapper = css`
         font-size: 1.25rem;
     }
 `;
-
-
-// dateFNS

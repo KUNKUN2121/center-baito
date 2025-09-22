@@ -64,7 +64,7 @@ Route::middleware('auth')->group(function () {
 
         // Editor用
         Route::get('/shifts/admin/edit/show', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.index');
-        Route::post('/shifts/admin/edit/post', [EditController::class, 'post'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.change');
+        Route::post('/shifts/admin/edit/confirm', [EditController::class, 'confirm'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.change');
 
     });
 

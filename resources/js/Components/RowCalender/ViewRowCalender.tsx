@@ -9,11 +9,13 @@ const ViewRowCalender: React.FC<{
     schedule: any[];
     shiftSubmissions: any[];
     onShiftClick?: (userId: number, date: string) => void;
+    confirmedShifts?: any[];
  }> = ({
     users,
     schedule,
     shiftSubmissions,
     onShiftClick,
+    confirmedShifts,
 }) => {
     const requestMonth = "202510"; // YYYYMM形式で指定
     // カレンダーの初期化処理
@@ -36,45 +38,72 @@ const ViewRowCalender: React.FC<{
             <div css={tableWapperCss}>
                 <table>
                     <thead>
-                        <th>名前</th>
-                        <th></th>
-                        {days.map((day, index) => (
-                            <th key={index}>
-                                {format(day, "d(eee)", { locale: ja })}
-                            </th>
-                        ))}
+                        <tr>
+                            <th>名前</th>
+                            <th></th>
+                            {days.map((day, index) => (
+                                <th key={index}>
+                                    {format(day, "d(eee)", { locale: ja })}
+                                </th>
+                            ))}
+                        </tr>
                     </thead>
                     {/* <thead>
                         <th>実数</th>
                         <th>2</th>
                     </thead> */}
+                        <tbody>
                         {users.map((user) => (
                             <tr key={user.id}>
                                 <td>{user.name}</td>
                                 <td>
-                                    <span>希望シフト</span>
-                                    <span>確定シフト</span>
+                                    {/* <span>希望シフト</span>
+                                    <span>確定シフト</span> */}
                                 </td>
                                 {days.map((day, index) => {
                                     const dayStr = format(day, "yyyy-MM-dd");
                                     // shiftSubmissionsからuser_idとstart_datetimeが一致するものを探す
+
+                                    // 希望シフト
                                     const submission = shiftSubmissions.find((s) =>
                                         s.user_id === user.id &&
-                                        s.start_datetime.startsWith(dayStr)
+                                        s.start_datetime && s.start_datetime.startsWith(dayStr)
                                     );
+                                    // 確定シフト
+                                    const confirmed = confirmedShifts!.find((s) =>
+                                        s.user_id === user.id &&
+                                        s.start_datetime && s.start_datetime.startsWith(dayStr)
+                                    );
+
                                     return (
                                         <td key={index}
                                             onClick={() => onShiftClick ? onShiftClick(user.id, dayStr) : null}
+                                            css={tdContent}
                                         >
-                                            <p>{submission ? format(new Date(submission.start_datetime), "HH:mm") : ""}</p>
-                                            <p>{submission ? format(new Date(submission.end_datetime), "HH:mm") : ""}</p>
+                                            <div css={containerCss}>
+                                                {submission ? (
+                                                <div css={submissionWapperCss}>
+                                                    <p>{submission ? format(new Date(submission.start_datetime), "HH:mm") : ""}</p>
+                                                    <p>-</p>
+                                                    <p>{submission ? format(new Date(submission.end_datetime), "HH:mm") : ""}</p>
+                                                </div>
+                                                ): (<div />)}
+
+                                                {confirmed && (
+                                                    <div css={confirmedWapperCss}>
+                                                        <p>{confirmed ? format(new Date(confirmed.start_datetime), "HH:mm") : ""}</p>
+                                                        <p>{confirmed ? format(new Date(confirmed.end_datetime), "HH:mm") : ""}</p>
+                                                    </div>
+                                                )}
+
+
+                                            </div>
+
                                         </td>
                                     );
                                 })}
                             </tr>
                         ))}
-                    <tbody>
-
                     </tbody>
                 </table>
             </div>
@@ -112,4 +141,37 @@ const tableWapperCss = css`
         background-color: #f4f4f4;
     }
 
+`
+const tdContent = css`
+    padding: 0 !important;
+`;
+
+const containerCss = css`
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+`;
+
+const submissionWapperCss = css`
+    display: flex;
+    justify-content: center;
+    background-color: lightblue;
+    height: 40%;
+`;
+const confirmedWapperCss = css`
+    display: flex;
+    justify-content: space-between;
+    background-color: #c6ffc6;
+    height: 60%;
+    flex-direction: column;
+    p{
+        font-weight: bold;
+        text-align: center;
+    }
+`;
+
+const none = css`
+    height: 40%;
 `

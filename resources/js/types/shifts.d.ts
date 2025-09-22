@@ -35,8 +35,11 @@ export type User = {
 export interface Submission {
     id?: number;
     user_id: number;
+    schedule_id: number;
     start_datetime: string; // YYYY-MM-DD HH:mm:ss
     end_datetime: string;   // YYYY-MM-DD HH:mm:ss
+    change_start_datetime?: string; // YYYY-MM-DD HH:mm:ss
+    change_end_datetime?: string;   // YYYY-MM-DD HH:mm:ss
     status: 'draft' | 'tentative' | 'confirm';
     notes?: string;
     created_at?: string;

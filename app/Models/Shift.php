@@ -24,5 +24,18 @@ class Shift extends Model
         return $this->hasMany(ShiftHistory::class);
     }
 
+    public function schedule()
+    {
+        return $this->belongsTo(Schedule::class);
+    }
+
+    protected $fillable = [
+        'schedule_id',
+        'user_id',
+        'start_datetime',
+        'end_datetime',
+        'notes',
+    ];
+
 
 }
