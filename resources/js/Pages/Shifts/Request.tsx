@@ -4,14 +4,14 @@ import { css } from '@emotion/react';
 import ViewCalender from '@/Components/NormalCalender/ViewCalender';
 import { Schedule } from '@/types/shifts';
 import { useEffect, useState } from 'react';
-
-const wapper = css`
-
-`;
+import axios from 'axios';
 
 // シフト希望画面
 export default function Request() {
     const [data, setData] = useState<Schedule[]>(null!);
+    const [scheduleId, setScheduleId] = useState<number | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [recruitmentDate, setRecruitmentDate] = useState<string | null>(null);
 
     // fetchしてデータを取得する
     const fetchData = async () => {
@@ -32,7 +32,9 @@ export default function Request() {
             // data = await response.json();
             const jsonData = await response.json();
             console.log("Fetched schedules:", jsonData);
-            setData(jsonData);
+            setData(jsonData.shiftSubmissions);
+            setScheduleId(jsonData.scheduleId);
+            setRecruitmentDate(jsonData.date);
 
             // ここでstateにデータをセットするなどの処理を行う
         }
@@ -63,22 +65,93 @@ export default function Request() {
     };
 
     if(!data){
-        return <div>Loading...</div>;
+        return <div>
+            <Head title="シフト希望" />
+            Loading...
+            </div>;
     }
+
+
+
+
+
+    const handleSubmitModal = (newSchedule: Omit<Schedule, 'id' | 'user_id'>) => {
+        // POSTする前にdataを更新
+        const userId = 1; // 仮のユーザーID、実際には認証されたユーザーのIDを使用する
+        handleChangeShift({
+            ...newSchedule,
+            user_id: userId,
+        } as Schedule);
+
+        console.log("Submitting new schedule:", newSchedule, "with scheduleId:", scheduleId);
+
+        axios.post('/api/shifts/create', {
+            newSchedule,
+            scheduleId
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            withCredentials: true, // クッキーを含める
+        })
+        .then(response => {
+            // 成功時の処理 dataを更新する
+            console.log("Shift created successfully:", response.data);
+        })
+        .catch(error => {
+            console.error("There was an error creating the shift:", error);
+        });
+
+
+        setSelectedDate(null);
+    };
+
+
 
 
     console.log("Fetched data:", data);
     return (
         <div css={wapper}>
+            <Head title="シフト希望" />
+            <h1 css={titleCss}>{recruitmentDate} の シフト希望</h1>
+            <div css={announceWapper}>
+                <p>ここはアナウンスです。アナウンスです。アナウンスです。アナウンスです。アナウンスです。アナウンスです。アナウンスアナウンスです。アナウンスです。アナウンスです。アナウンスです。ですアナウンスです。アナウンスです。アナウンスです。アナウンスです。。</p>
+            </div>
             <div>
                 <ViewCalender
-                    requestMonth="2025/09"
+                    requestMonth={recruitmentDate?.replace('年', '-').replace('月', '') || '2025-09'}
                     schedules={data}
                     closedDays={[]}
                     userId={1}
                     handleChangeShift={handleChangeShift}
+                    handleSubmitModal={handleSubmitModal}
+                    setSelectedDate={setSelectedDate}
+                    selectedDate={selectedDate}
                 />
             </div>
         </div>
     );
 }
+
+const wapper = css`
+    margin: 0 auto;
+    max-width: 1200px;
+`;
+const titleCss = css`
+    font-size: 24px;
+    text-align: center;
+    margin: 20px 0;
+`;
+
+
+const announceWapper = css`
+    text-align: center;
+    margin-bottom: 20px;
+    width: 80%;
+    margin: 0 auto;
+
+    @media screen and (max-width: 768px) {
+        width: 95%;
+    }
+`

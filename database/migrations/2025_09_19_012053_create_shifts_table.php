@@ -14,8 +14,11 @@ return new class extends Migration
         Schema::create('shifts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('schedule_id');
             $table->dateTime('start_time');
             $table->dateTime('end_time');
+            $table->text('notes')->nullable();
+            // $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             // 休憩時間どうする？
             $table->timestamps();
         });

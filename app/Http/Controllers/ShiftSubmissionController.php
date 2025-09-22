@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ShiftSubmission;
 use Illuminate\Http\Request;
 use App\Http\Requests\ShiftSubmissionRequest;
+use App\Models\Schedule;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -18,8 +19,24 @@ class ShiftSubmissionController extends Controller
      */
     public function index()
     {
+        // 現在募集中のシフトを取得
+        $schedules = Schedule::where('status', 'open')->get();
+        // \dd($schedules);
+        if($schedules->isEmpty()) {
+            return response()->json([
+                'status' => '404',
+                'message' => '現在募集中のシフトはありません。'
+            ], 204);
+        }
         $user = auth()->user();
-        return response()->json($user->shiftSubmissions);
+        $shiftSubmissions = $user->shiftSubmissions()->whereIn('schedule_id', $schedules->pluck('id'))->get();
+        $scheduleId = $schedules->pluck('id')->first();
+        return response()->json([
+            'scheduleId' => $scheduleId,
+            'date' => $schedules->first()->year . '年' . $schedules->first()->month . '月',
+            'shiftSubmissions' => $shiftSubmissions,
+        ], 200);
+        // return response()->json($user->shiftSubmissions);
     }
 
     /**
@@ -27,10 +44,45 @@ class ShiftSubmissionController extends Controller
      */
     public function create(Request $request)
     {
+        // \dd($request->all());
+        $request->validate([
+            'newSchedule' => 'required|array',
+            'newSchedule.start_datetime' => 'required|date',
+            'newSchedule.end_datetime' => 'required|date|after:newSchedule.start_datetime',
+            'scheduleId' => 'required|integer|exists:schedules,id',
+        ]);
         $user = auth()->user();
-        $shiftSubmission = $user->shiftSubmissions()->create(
-            $request->only(['start_datetime', 'end_datetime', 'status', 'notes'])
-        );
+        $newSchedule = $request->input('newSchedule');
+        $scheduleId = $request->input('scheduleId');
+
+        // 時間が被っていないか確認
+        $overlap = ShiftSubmission::where('user_id', $user->id)
+            ->where(function ($query) use ($newSchedule) {
+                $query->whereBetween('start_datetime', [$newSchedule['start_datetime'], $newSchedule['end_datetime']])
+                      ->orWhereBetween('end_datetime', [$newSchedule['start_datetime'], $newSchedule['end_datetime']])
+                      ->orWhere(function ($query) use ($newSchedule) {
+                          $query->where('start_datetime', '<=', $newSchedule['start_datetime'])
+                                ->where('end_datetime', '>=', $newSchedule['end_datetime']);
+                      });
+            })
+        ->exists();
+
+
+        if ($overlap) {
+            return response()->json([
+                'status' => '409',
+                'message' => 'シフトの時間が重複しています。'
+            ], 409);
+        }
+
+        $shiftSubmission = ShiftSubmission::create([
+            'user_id' => $user->id,
+            'schedule_id' => $scheduleId,
+            'start_datetime' => $newSchedule['start_datetime'],
+            'end_datetime' => $newSchedule['end_datetime'],
+            'status' => 'draft',
+            'notes' => $newSchedule['notes'] ?? null,
+        ]);
         return response()->json($shiftSubmission, 201); // 201 Created
 
     }

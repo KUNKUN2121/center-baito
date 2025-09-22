@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EditController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShiftSubmissionController;
 use App\Models\Shift;
@@ -28,12 +29,25 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// shifts/request
+// シフト希望提出ページ
 Route::get('/shifts/request', function () {
     return Inertia::render('Shifts/Request');
 })->middleware(['auth', 'verified'])->name('shifts.request');
 
+// 管理パネル
+Route::get('/shifts/admin', function () {
+    return Inertia::render('Shifts/Admin');
+})->middleware(['auth', 'verified'])->name('shifts.admin');
+
+// 管理パネル Editor
+Route::get('/shifts/admin/edit', function () {
+    return Inertia::render('Shifts/Admin/Edit');
+})->middleware(['auth', 'verified'])->name('shifts.admin.editor');
+
+
+
 require __DIR__.'/auth.php';
+
 
 
 
@@ -47,6 +61,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('shifts/request', [ShiftSubmissionController::class, 'index']);
         Route::post('shifts/create', [ShiftSubmissionController::class, 'create']);
+
+        // Editor用
+        Route::get('/shifts/admin/edit/show', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.index');
+        Route::post('/shifts/admin/edit/post', [EditController::class, 'post'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.change');
 
     });
 

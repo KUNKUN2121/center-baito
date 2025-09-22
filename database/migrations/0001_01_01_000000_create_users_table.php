@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -16,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->string('password');
             $table->unsignedBigInteger('role_id');
             $table->rememberToken();
@@ -36,6 +38,13 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        DB::table('users')->insert([
+            'name' => 'Admin User',
+            'email' => 'admin@admin.com',
+            'password' => bcrypt('admin12345'),
+            'role_id' => 1, // 管理者
+        ]);
     }
 
     /**

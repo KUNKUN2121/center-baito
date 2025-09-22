@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('shift_submissions', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('schedule_id');
             $table->unsignedBigInteger('user_id');
             $table->dateTime('start_datetime');
             $table->dateTime('end_datetime');

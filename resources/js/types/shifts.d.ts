@@ -26,4 +26,19 @@ export type User = {
     id: number;
     name: string;
     email: string;
-  };
+    email_verified_at?: string;
+    is_active: boolean;
+    created_at?: string;
+    updated_at?: string;
+};
+
+export interface Submission {
+    id?: number;
+    user_id: number;
+    start_datetime: string; // YYYY-MM-DD HH:mm:ss
+    end_datetime: string;   // YYYY-MM-DD HH:mm:ss
+    status: 'draft' | 'tentative' | 'confirm';
+    notes?: string;
+    created_at?: string;
+    updated_at?: string;
+}

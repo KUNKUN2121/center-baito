@@ -39,6 +39,9 @@ interface CalendarProps {
     closedDays: ClosedDay[];
     userId: number;
     handleChangeShift: (schedule: Schedule) => void;
+    handleSubmitModal: (newSchedule: Omit<Schedule, 'id' | 'user_id'>) => void;
+    selectedDate: Date | null;
+    setSelectedDate: Dispatch<SetStateAction<Date | null>>;
 }
 
 const ViewCalender = ({
@@ -47,9 +50,11 @@ const ViewCalender = ({
     closedDays,
     userId,
     handleChangeShift,
+    handleSubmitModal,
+    selectedDate,
+    setSelectedDate
 }: CalendarProps) => {
     const currentDate = new Date(requestMonth.replace("/", "-") + "-01");
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
     const handleDayClick = (date: Date) => {
         setSelectedDate(date);
@@ -61,31 +66,7 @@ const ViewCalender = ({
 
     // postする
     // 新しい希望シフトを追加する関数
-    const handleSubmitModal = (newSchedule: Omit<Schedule, 'id' | 'user_id'>) => {
-        // POSTする前にdataを更新
-        handleChangeShift({
-            ...newSchedule,
-            user_id: userId,
-        } as Schedule);
 
-        axios.post('/api/shifts/create', newSchedule, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            withCredentials: true, // クッキーを含める
-        })
-        .then(response => {
-            // 成功時の処理 dataを更新する
-            console.log("Shift created successfully:", response.data);
-        })
-        .catch(error => {
-            console.error("There was an error creating the shift:", error);
-        });
-
-
-        setSelectedDate(null);
-    };
 
     const handleDeleteSchedule = (work_date: string) => {
         console.log("Delete:", work_date);
