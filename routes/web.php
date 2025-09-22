@@ -29,6 +29,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+// シフト閲覧ページ
+Route::get('/shifts', function () {
+    return Inertia::render('Shifts/Index');
+})->middleware(['auth', 'verified'])->name('shifts.index');
+
 // シフト希望提出ページ
 Route::get('/shifts/request', function () {
     return Inertia::render('Shifts/Request');
