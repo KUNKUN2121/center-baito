@@ -16,29 +16,30 @@ export default function Request() {
     // fetchしてデータを取得する
     const fetchData = async () => {
         try {
-            const response = await fetch('/api/shifts/request', {
-                method: 'GET',
+            const response = await axios.get('/api/shifts/request', {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
                 },
-                credentials: 'include', // クッキーを含める
+                withCredentials: true, // クッキーを含める
             });
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+            console.log("Response status:", response.status);
+            console.log("Response headers:", response.headers);
 
-            // data = await response.json();
-            const jsonData = await response.json();
-            console.log("Fetched schedules:", jsonData);
+            if (response.status === 204) {
+                setData([]);
+            }
+            if(response.status !== 200){
+                throw new Error(`Unexpected response status: ${response.status}`);
+            }
+            const jsonData = response.data;
+
             setData(jsonData.shiftSubmissions);
             setScheduleId(jsonData.scheduleId);
             setRecruitmentDate(jsonData.date);
 
-            // ここでstateにデータをセットするなどの処理を行う
-        }
-        catch (error) {
+        } catch (error) {
             console.error('There was a problem with the fetch operation:', error);
         }
     };
@@ -71,6 +72,13 @@ export default function Request() {
             </div>;
     }
 
+    if(data.length === 0){
+        return <div>
+            <Head title="シフト希望" />
+            現在シフト募集中ではありません。
+            </div>;
+    }
+
 
 
 
@@ -98,6 +106,7 @@ export default function Request() {
         .then(response => {
             // 成功時の処理 dataを更新する
             console.log("Shift created successfully:", response.data);
+            fetchData(); // サーバーから最新のデータを取得して更新
         })
         .catch(error => {
             console.error("There was an error creating the shift:", error);

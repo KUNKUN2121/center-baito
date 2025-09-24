@@ -1,16 +1,21 @@
+import EditModal from '@/Components/Edit/EditModal';
 import { Submission, User } from '@/types/shifts';
 import { css } from '@emotion/react';
 import axios from 'axios';
 import { format, addDays, endOfMonth, endOfWeek, startOfMonth, startOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 
 const ShiftsIndex: React.FC = () => {
     // 仮のシフトデータ
-    const [schedule, setSchedule] = React.useState<any[]>([]);
-    const [users, setUsers] = React.useState<User[]>([]);
-    const [confirmedShifts, setConfirmedShifts] = React.useState<Submission[]>([]);
+    const [schedule, setSchedule] = useState<any[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [confirmedShifts, setConfirmedShifts] = useState<Submission[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // 押されたシフトの情報
+    const [selectedShift, setSelectedShift] = useState<{ confirmed: Submission | null } | null>(null);
 
 
     // schedule[0].year + schedule[0].month で月を指定する
@@ -96,7 +101,12 @@ const ShiftsIndex: React.FC = () => {
 
                                     return (
                                         <td key={index}
-                                            onClick={() => onShiftClick ? onShiftClick(user.id, dayStr) : null}
+                                            onClick={() => {
+                                                // クリックでモーダルオープン
+                                                // setSelectedShift({ userId: user.id, date: dayStr });
+                                                setIsModalOpen(true);
+                                                setSelectedShift({ confirmed: confirmed ?? null });
+                                            }}
                                             css={tdContent}
                                         >
                                             <div css={containerCss}>
@@ -119,6 +129,29 @@ const ShiftsIndex: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+            <EditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="シフト変更リクエスト">
+                <div>
+                    <h2>シフト変更リクエスト</h2>
+                    <p>このシフトを変更しますか？</p>
+                    <button onClick={() => setIsModalOpen(false)}>閉じる</button>
+                    <button onClick={() => {
+                        // 変更リクエスト送信
+                        setIsModalOpen(false);
+                        axios.post('/api/shifts/change/request', {
+                            user_id: 1, // 仮のユーザーID
+                            shift_id: selectedShift?.confirmed ? selectedShift.confirmed.id : null,
+                            reason : "test理由"
+                        }
+                        ).then(response => {
+                            alert("変更リクエストを送信しました。");
+                        }).catch(error => {
+                            console.error("Error creating shift change request:", error);
+                            alert("変更リクエストの送信に失敗しました。");
+                        });
+                    }}>変更リクエスト送信</button>
+                </div>
+            </EditModal>
+
         </div>
     );
 };

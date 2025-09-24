@@ -22,7 +22,7 @@ class ShiftSubmissionController extends Controller
         // 現在募集中のシフトを取得
         $schedules = Schedule::where('status', 'open')->get();
         // \dd($schedules);
-        if($schedules->isEmpty()) {
+        if($schedules->isEmpty() || $schedules->first()->status !== 'open'){
             return response()->json([
                 'status' => '404',
                 'message' => '現在募集中のシフトはありません。'

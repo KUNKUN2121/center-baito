@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('shift_id');
             $table->unsignedBigInteger('requester_user_id'); // 変更をリクエストしたユーザー
-            $table->unsignedBigInteger('substitute_user_id'); // 代わりにシフトに入るユーザー
+            $table->unsignedBigInteger('substitute_user_id')->nullable(); // 代わりにシフトに入るユーザー
             $table->unsignedBigInteger('approver_user_id')->nullable(); // 承認者（アルバイトリーダーなど）
             $table->enum('status', ['pending', 'approved', 'rejected', 'canceled'])->default('pending');
+            
+            // pendingは、承認待ち approvedは承認済み、rejectedは拒否、canceledはリクエストした本人がキャンセル
             $table->timestamps();
         });
     }

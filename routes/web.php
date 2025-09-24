@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\EditController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShiftChangeRequestsController;
 use App\Http\Controllers\ShiftSubmissionController;
 use App\Models\Shift;
 use App\Models\ShiftSubmission;
@@ -70,7 +71,12 @@ Route::middleware('auth')->group(function () {
 
         // Editor用
         Route::get('/shifts/admin/edit/show', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.index');
-        Route::post('/shifts/admin/edit/confirm', [EditController::class, 'confirm'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.change');
+        Route::post('/shifts/admin/edit/confirm', [EditController::class, 'confirm'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.confirm');
+
+
+        // シフト変更リクエスト
+        Route::post('/shifts/change/request', [ShiftChangeRequestsController::class, 'create'])->middleware(['auth', 'verified'])->name('shifts.change');
+        Route::get('/shifts/change', [ShiftChangeRequestsController::class, 'update'])->middleware(['auth', 'verified'])->name('shifts.change');
 
     });
 
