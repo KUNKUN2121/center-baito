@@ -3,6 +3,7 @@
 use App\Http\Controllers\EditController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShiftChangeRequestsController;
+use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\ShiftSubmissionController;
 use App\Models\Shift;
 use App\Models\ShiftSubmission;
@@ -66,12 +67,23 @@ Route::middleware('auth')->group(function () {
             return auth()->user();
         });
 
+        // 一般ユーザシフトVIEW
+        Route::get('shifts/show/{yearMonth?}', [ShiftController::class, 'show']);
+
+
         Route::get('shifts/request', [ShiftSubmissionController::class, 'index']);
         Route::post('shifts/create', [ShiftSubmissionController::class, 'create']);
 
+        //
         // Editor用
+        //
+
+        // Editの表示
         Route::get('/shifts/admin/edit/show', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.index');
+        // 確定シフトの保存
         Route::post('/shifts/admin/edit/confirm', [EditController::class, 'confirm'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.confirm');
+        // シフトの確定公開
+        Route::post('/shifts/admin/edit/publish', [EditController::class, 'publish'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.publish');
 
 
         // シフト変更リクエスト

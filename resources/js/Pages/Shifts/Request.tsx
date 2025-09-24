@@ -24,11 +24,9 @@ export default function Request() {
                 withCredentials: true, // クッキーを含める
             });
 
-            console.log("Response status:", response.status);
-            console.log("Response headers:", response.headers);
 
             if (response.status === 204) {
-                setData([]);
+                setScheduleId(0);
             }
             if(response.status !== 200){
                 throw new Error(`Unexpected response status: ${response.status}`);
@@ -65,14 +63,7 @@ export default function Request() {
         });
     };
 
-    if(!data){
-        return <div>
-            <Head title="シフト希望" />
-            Loading...
-            </div>;
-    }
-
-    if(data.length === 0){
+    if(scheduleId === 0){
         return <div>
             <Head title="シフト希望" />
             現在シフト募集中ではありません。
@@ -80,7 +71,12 @@ export default function Request() {
     }
 
 
-
+    if(!data){
+        return <div>
+            <Head title="シフト希望" />
+            Loading...
+            </div>;
+    }
 
 
     const handleSubmitModal = (newSchedule: Omit<Schedule, 'id' | 'user_id'>) => {

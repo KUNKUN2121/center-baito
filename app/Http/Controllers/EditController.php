@@ -14,14 +14,18 @@ class EditController extends Controller
     public function show()
     {
         // Todo: 募集中のシフトを選択できるようにする。
-        $schedules = Schedule::where('status', 'open')->get();
+        // $schedules = Schedule::where('status', 'open')->get();
+        // 一番最新のスケジュールを取得、配列ではなく
+        $schedule = Schedule::orderBy('created_at', 'desc')->first();
+
+
         $users = User::all();
 
         // usersのis_activeがfalse かつ $schedulesのidがshift_submissionsに存在しないユーザーは除外
-        $users = $users->filter(function ($user) use ($schedules) {
+        $users = $users->filter(function ($user) use ($schedule) {
             if (!$user->is_active) {
                 $hasSubmission = ShiftSubmission::where('user_id', $user->id)
-                    ->whereIn('schedule_id', $schedules->pluck('id'))
+                    ->whereIn('schedule_id', $schedule->pluck('id'))
                     ->exists();
                 return $hasSubmission;
             }
@@ -29,13 +33,13 @@ class EditController extends Controller
         });
 
         // 提出されたシフト希望を取得
-        $ShiftSubmissions = ShiftSubmission::whereIn('schedule_id', $schedules->pluck('id'))->get();
+        $ShiftSubmissions = ShiftSubmission::whereIn('schedule_id', $schedule->pluck('id'))->get();
         // 確定シフトを取得
-        $confirmedShifts = Shift::whereIn('schedule_id', $schedules->pluck('id'))->get();
+        $confirmedShifts = Shift::whereIn('schedule_id', $schedule->pluck('id'))->get();
 
 
         return response()->json([
-            'schedules' => $schedules,
+            'schedule' => $schedule,
             'shiftSubmissions' => $ShiftSubmissions,
             'confirmedShifts' => $confirmedShifts,
             'users' => $users,
@@ -88,7 +92,23 @@ class EditController extends Controller
                 'shiftSubmission' => $confirmShift,
             ], 200);
         }
+    }
 
+    // シフト確定
+    public function publish(Request $request) {
+        $data = $request->validate([
+            'schedule_id' => 'required|integer|exists:schedules,id',
+        ]);
 
+        $schedule = Schedule::find($data['schedule_id']);
+        if (!$schedule) {
+            return response()->json(['message' => 'スケジュールが見つかりません。'], 404);
+        }
+
+        // ステータスをpublishedに更新
+        $schedule->status = 'published';
+        $schedule->save();
+
+        return response()->json(['message' => 'シフトを確定公開しました。', 'schedule' => $schedule], 200);
     }
 }

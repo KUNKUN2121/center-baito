@@ -1,3 +1,4 @@
+import { Schedule } from '@/types/shifts';
 import { css } from '@emotion/react';
 import { format, addDays, endOfMonth, endOfWeek, startOfMonth, startOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -6,7 +7,7 @@ import React from 'react';
 
 const ViewRowCalender: React.FC<{
     users: any[];
-    schedule: any[];
+    schedule: Schedule;
     shiftSubmissions: any[];
     onShiftClick?: (userId: number, date: string) => void;
     confirmedShifts?: any[];
@@ -17,9 +18,11 @@ const ViewRowCalender: React.FC<{
     onShiftClick,
     confirmedShifts,
 }) => {
-    const requestMonth = "202510"; // YYYYMM形式で指定
+    // const requestMonth = "202510"; // YYYYMM形式で指定
+
     // カレンダーの初期化処理
-    const currentDate = new Date(requestMonth.slice(0, 4) + "-" + requestMonth.slice(4, 6) + "-01");
+    // const currentDate = new Date(requestMonth.slice(0, 4) + "-" + requestMonth.slice(4, 6) + "-01");
+    const currentDate = new Date(Number(schedule.year), Number(schedule.month) - 1, 1);
     const start = startOfMonth(startOfMonth(currentDate));
     const end = endOfMonth(endOfMonth(currentDate));
     const days = [];
@@ -115,7 +118,6 @@ export default ViewRowCalender;
 
 
 const wapperCss = css`
-
     `;
 
 const tableWapperCss = css`

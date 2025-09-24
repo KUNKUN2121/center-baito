@@ -1,7 +1,8 @@
 import EditModal from '@/Components/Edit/EditModal';
 import ViewRowCalender from '@/Components/RowCalender/ViewRowCalender';
-import { Submission, User } from '@/types/shifts';
+import { Schedule, Submission, User } from '@/types/shifts';
 import { css } from '@emotion/react';
+import { Button } from '@mui/material';
 import axios from 'axios';
 import { format, set } from 'date-fns';
 import React, { useEffect, useState } from 'react';
@@ -11,7 +12,9 @@ import React, { useEffect, useState } from 'react';
 
 const Edit: React.FC = () => {
 
-    const [schedule, setSchedule] = useState<any[]>([]);
+    //Todo: シフト作成を選べるようにする。 また、編集もここでできるようにする。
+
+    const [schedule, setSchedule] = useState<Schedule>();
     const [users, setUsers] = useState<User[]>([]);
     const [shiftSubmissions, setShiftSubmissions] = useState<(Submission)[]>([]);
     const [confirmedShifts, setConfirmedShifts] = useState<Submission[]>([]);
@@ -35,7 +38,7 @@ const Edit: React.FC = () => {
         axios.get('/api/shifts/admin/edit/show')
             .then(response => {
                 console.log("Fetched user data:", response.data);
-                setSchedule(response.data.schedules);
+                setSchedule(response.data.schedule);
                 setUsers(response.data.users);
                 setShiftSubmissions(response.data.shiftSubmissions);
                 setConfirmedShifts(response.data.confirmedShifts);
@@ -100,7 +103,7 @@ const Edit: React.FC = () => {
     const handleShiftClick = (userId: number, date: string) => {
 
         // 募集シフトのIDを取得。通常一つしかないため、最初の要素を使用
-        const scheduleId = schedule.length > 0 ? schedule[0].id : null;
+        const scheduleId = schedule?.id;
 
 
         if (!scheduleId) {
@@ -146,6 +149,27 @@ const Edit: React.FC = () => {
 
 
 
+    // シフト確定
+    const handleConfirmShift = () => {
+        if (!schedule) return;
+
+        if (!window.confirm("シフトを確定します。よろしいですか？")) {
+            return;
+        }
+
+        // 確定アクションをサーバーに送信
+        axios.post('/api/shifts/admin/edit/publish', {
+            schedule_id: schedule.id,
+        })
+            .then(response => {
+                alert("シフトを確定しました。");
+                // ステータスを更新
+                setSchedule({ ...schedule, status: 'published' });
+            })
+            .catch(error => {
+                alert("シフトの確定に失敗しました。");
+            });
+    }
 
 
 
@@ -153,10 +177,37 @@ const Edit: React.FC = () => {
         return <div>Loading...</div>;
     }
 
+
+    console.log(schedule);
+
+
+
     return (
-        <div>
+        <div css={wapperCss}>
             <div>
                 <h1>シフトエディター（管理者ページ）</h1>
+                <h2>{schedule?.year} 年 {schedule?.month} 月 のシフト</h2>
+
+
+
+                {/* schedulesのstatusがopened closed のときはシフト確定（公開), publishedのときは更新 */}
+
+                {
+                    schedule?.status !== 'published' ? (
+                         <Button
+                            onClick={() => {
+                                handleConfirmShift();
+                            }}
+                        >シフト公開(確定)</Button>
+                    ) : (
+                        <p>確定済みのため、変更したらすぐに変更されます。</p>
+                        // Todo: 更新は、Historyでやるべきかも？
+                    )
+                }
+
+
+
+
                 <ViewRowCalender
                     schedule={schedule}
                     shiftSubmissions={shiftSubmissions}
@@ -180,7 +231,9 @@ const Edit: React.FC = () => {
                                 <p>メモ: {modalData.notes}</p>
                             </div>
                         ) : (
-                            <p>この日の希望シフトはありません。</p>
+                            <div>
+                                <span>なし</span>
+                            </div>
                         )}
                         {/* 入力欄 */}
                         <div>
@@ -243,6 +296,11 @@ const Edit: React.FC = () => {
         </div>
     );
 };
+
+const wapperCss = css`
+    height: 100vh;
+    background-color: #e7f4ffbf;
+`
 
 export default Edit;
 const modalContentWapper = css`

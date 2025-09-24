@@ -1,3 +1,5 @@
+import { id } from "date-fns/locale";
+
 export interface Schedule {
     id?: number;
     user_id?: number;
@@ -42,6 +44,16 @@ export interface Submission {
     change_end_datetime?: string;   // YYYY-MM-DD HH:mm:ss
     status: 'draft' | 'tentative' | 'confirm';
     notes?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+
+export interface Schedule {
+    id: number;
+    year: string;  // YYYY
+    month: string; // MM
+    status: 'open' | 'closed' | 'published';
     created_at?: string;
     updated_at?: string;
 }

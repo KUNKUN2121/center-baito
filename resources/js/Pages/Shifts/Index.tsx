@@ -1,8 +1,11 @@
 import EditModal from '@/Components/Edit/EditModal';
+import ViewCalender from '@/Components/NormalCalender/ViewCalender';
+import ColumnCalender from '@/Components/Shifts/ColumnCalender';
+import RowCalender from '@/Components/Shifts/RowCalender';
 import { Submission, User } from '@/types/shifts';
 import { css } from '@emotion/react';
 import axios from 'axios';
-import { format, addDays, endOfMonth, endOfWeek, startOfMonth, startOfWeek } from 'date-fns';
+import { format, addDays, endOfMonth, startOfMonth } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import React, { useEffect, useState } from 'react';
 
@@ -26,9 +29,19 @@ const ShiftsIndex: React.FC = () => {
     }, []);
 
 
+    // modalOpen時に処理する
+    const handleSubmitModal = () => {
+        // クリックした場所がシフトない場合
+        if (!selectedShift) {
+            return;
+        }
+        setIsModalOpen(!isModalOpen);
+    }
+
+
     // 初期データ取得
     function getIndex() {
-        axios.get('/api/shifts/admin/edit/show')
+        axios.get('/api/shifts/show')
             .then(response => {
                 console.log("Fetched user data:", response.data);
                 setSchedule(response.data.schedules);
@@ -37,7 +50,7 @@ const ShiftsIndex: React.FC = () => {
                 console.log("schedule", schedule);
             })
             .catch(error => {
-                console.error("api/shifts/admin/edit", error);
+                console.error("api/shifts/edit", error);
             });
     }
 
@@ -74,62 +87,35 @@ const ShiftsIndex: React.FC = () => {
                 <p>閲覧日: {format(new Date(), "yyyy年MM月dd日", { locale: ja })}</p>
             </div>
 
-            <div css={tableWapperCss}>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>名前</th>
-                            {days.map((day, index) => (
-                                <th key={index}>
-                                    <p>{format(day, "d", { locale: ja })}</p>
-                                    <p>{format(day, "(eee)", { locale: ja })}</p>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                        <tbody>
-                        {users.map((user) => (
-                            <tr key={user.id}>
-                                <td>{user.name}</td>
-                                {days.map((day, index) => {
-                                    const dayStr = format(day, "yyyy-MM-dd");
-                                    // 確定シフト
-                                    const confirmed = confirmedShifts!.find((s) =>
-                                        s.user_id === user.id &&
-                                        s.start_datetime && s.start_datetime.startsWith(dayStr)
-                                    );
 
-                                    return (
-                                        <td key={index}
-                                            onClick={() => {
-                                                // クリックでモーダルオープン
-                                                // setSelectedShift({ userId: user.id, date: dayStr });
-                                                setIsModalOpen(true);
-                                                setSelectedShift({ confirmed: confirmed ?? null });
-                                            }}
-                                            css={tdContent}
-                                        >
-                                            <div css={containerCss}>
-                                                {confirmed && (
-                                                    <div css={confirmedWapperCss}>
-                                                        <p>{confirmed ? format(new Date(confirmed.start_datetime), "HH:mm") : ""}</p>
-                                                        <span css={hrCss}/>
-                                                        <p>{confirmed ? format(new Date(confirmed.end_datetime), "HH:mm") : ""}</p>
-                                                    </div>
-                                                )}
+            <div>
+                <label htmlFor="viewMethod">ビュー </label>
+                <select id="viewMethod" name="viewMethod">
+                    <option value="row">横表示</option>
+                    <option value="column">縦表示</option>
+                    <option value="calendar">カレンダー表示</option>
+                </select>
 
-
-                                            </div>
-
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <label htmlFor="userViewMethod">ユーザー</label>
+                <select id="userViewMethod" name="userViewMethod">
+                    <option value="all">すべて</option>
+                    <option value="me">自分のみ</option>
+                </select>
             </div>
-            <EditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="シフト変更リクエスト">
+
+            <RowCalender
+                users={users}
+                days={days}
+                confirmedShifts={confirmedShifts}
+                handleSubmitModal={handleSubmitModal}
+                setSelectedShift={setSelectedShift}
+            />
+
+
+
+
+
+            {/* <EditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="シフト変更リクエスト">
                 <div>
                     <h2>シフト変更リクエスト</h2>
                     <p>このシフトを変更しますか？</p>
@@ -150,7 +136,7 @@ const ShiftsIndex: React.FC = () => {
                         });
                     }}>変更リクエスト送信</button>
                 </div>
-            </EditModal>
+            </EditModal> */}
 
         </div>
     );
@@ -169,83 +155,4 @@ const titleWapperCss = css`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-`;
-
-const tableWapperCss = css`
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 20px 0;
-        table-layout: fixed;
-    }
-
-    th, td {
-        border: 1px solid #ccc;
-        width: auto;
-        text-align: center;
-        height: 60px;
-        padding: 4px;
-        white-space: pre-wrap;
-        @media print {
-            font-size: 10px !important;
-            width: 25px !important;
-            height: 40px !important;
-            padding: 0px !important;
-        }
-
-    }
-
-    th, th:first-of-type{
-        background-color: #f4f4f4;
-    }
-`;
-const tdContent = css`
-    padding: 0 !important;
-`;
-
-const containerCss = css`
-    cursor: pointer;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-`;
-
-
-const confirmedWapperCss = css`
-    display: flex;
-    justify-content: space-between;
-    background-color: #c6ffc6;
-    height: 100%;
-    flex-direction: column;
-    p{
-        font-weight: bold;
-        text-align: center;
-        font-size: 1rem;
-    }
-
-    @media screen and (max-width: 1300px) {
-        p{
-            font-size: 13px !important;
-        }
-    }
-
-    @media print {
-        p {
-            font-size: 8px !important;
-        }
-        /* 印刷時に背景色は不要な場合が多いので白にしています */
-    }
-`;
-
-
-const hrCss = css`
-    /* 縦の線 */
-    border-left: 2px solid #000;
-    height: 10px;
-    margin: 0 auto;
-    @media print {
-        border-left: 0.2px solid #000;
-        height: 5px;
-    }
 `;

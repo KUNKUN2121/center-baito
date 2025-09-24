@@ -39,12 +39,12 @@ return new class extends Migration
             $table->integer('last_activity')->index();
         });
 
-        DB::table('users')->insert([
-            'name' => 'Admin User',
-            'email' => 'admin@admin.com',
-            'password' => bcrypt('admin12345'),
-            'role_id' => 1, // 管理者
-        ]);
+        // DB::table('users')->insert([
+        //     'name' => 'Admin User',
+        //     'email' => 'admin@admin.com',
+        //     'password' => bcrypt('admin12345'),
+        //     'role_id' => 1, // 管理者
+        // ]);
     }
 
     /**

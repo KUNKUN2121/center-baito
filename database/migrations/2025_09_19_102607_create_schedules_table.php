@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,6 +22,16 @@ return new class extends Migration
 
             $table->unique(['year', 'month']);
         });
+
+        // schedulesに初期データを挿入
+        DB::table('schedules')->insert([
+            'year' => 2025,
+            'month' => 10,
+            'status' => 'open',
+            'published_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
     /**
