@@ -133,9 +133,9 @@ const tableWapperCss = css`
 
     th, td {
         border: 1px solid #ccc;
-        width: 70px;
+        width: 90px;
         text-align: center;
-        height: 60px;
+        height: 72px;
         padding: 4px;
     }
 

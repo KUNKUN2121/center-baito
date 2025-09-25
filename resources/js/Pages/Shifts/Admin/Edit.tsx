@@ -2,13 +2,10 @@ import EditModal from '@/Components/Edit/EditModal';
 import ViewRowCalender from '@/Components/RowCalender/ViewRowCalender';
 import { Schedule, Submission, User } from '@/types/shifts';
 import { css } from '@emotion/react';
-import { Button } from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 import axios from 'axios';
-import { format, set } from 'date-fns';
+import { format } from 'date-fns';
 import React, { useEffect, useState } from 'react';
-
-
-
 
 const Edit: React.FC = () => {
 
@@ -123,21 +120,21 @@ const Edit: React.FC = () => {
 
         // 条件分岐
         // 確定シフトがあればそれを編集
-        if(confirmed){
+        if (confirmed) {
             setEditShift(confirmed);
             setModalData(confirmed);
         }
-        else if (baseSubmission){
+        else if (baseSubmission) {
             setEditShift(baseSubmission);
             setModalData(baseSubmission);
         }
-        else{
+        else {
             // どちらもなければ新規作成モード
             setEditShift({
                 user_id: userId,
                 schedule_id: scheduleId,
-                start_datetime: date + "T09:00:00", // 仮の開始時間
-                end_datetime: date + "T17:00:00",   // 仮の終了時間
+                start_datetime: date + "T16:30:00", // 仮の開始時間
+                end_datetime: date + "T21:00:00",   // 仮の終了時間
                 status: 'draft',
             });
             setModalData(null);
@@ -194,7 +191,7 @@ const Edit: React.FC = () => {
 
                 {
                     schedule?.status !== 'published' ? (
-                         <Button
+                        <Button
                             onClick={() => {
                                 handleConfirmShift();
                             }}
@@ -219,78 +216,73 @@ const Edit: React.FC = () => {
             {/* モーダル */}
             {isModalOpen && (
                 <EditModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="シフト編集">
-                    <div css={modalContentWapper}>
-                        <p>{selectedShift?.date}</p>
-                        <h2>{users.find(user => user.id === selectedShift?.userId)?.name} さん</h2>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
+                        <Typography variant="subtitle1">{selectedShift?.date}</Typography>
+                        <Typography variant="h6">{users.find(user => user.id === selectedShift?.userId)?.name} さん</Typography>
 
-                        {/* 希望シフト */}
-                        <span>希望シフト: </span>
-                        {modalData ? (
-                            <div>
-                                <span> {format(new Date(modalData.start_datetime), 'HH:mm')} - {format(new Date(modalData.end_datetime), 'HH:mm')}</span>
-                                <p>メモ: {modalData.notes}</p>
-                            </div>
-                        ) : (
-                            <div>
-                                <span>なし</span>
-                            </div>
-                        )}
-                        {/* 入力欄 */}
-                        <div>
-                            <label>
-                                開始時間:
-                                <input
-                                    type="time"
-                                    value={editShift ? format(new Date(editShift.start_datetime), "HH:mm") : ""}
-                                    onChange={(e) => {
-                                        if (editShift && selectedShift) {
-                                            const newDateTime = `${selectedShift.date}T${e.target.value}:00`;
-                                            setEditShift({
-                                                ...editShift,
-                                                start_datetime: newDateTime,
-                                            });
-                                        }
-                                    }}
-                                />
-                            </label>
+                        <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', p: 2, mb: 2 }}>
+                            <Typography variant="subtitle2" gutterBottom>希望シフト</Typography>
+                            {modalData ? (
+                                <>
+                                    <Typography variant="body1">
+                                        {format(new Date(modalData.start_datetime), 'HH:mm')} - {format(new Date(modalData.end_datetime), 'HH:mm')}
+                                    </Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        メモ: {modalData.notes || 'なし'}
+                                    </Typography>
+                                </>
+                            ) : (
+                                <Typography variant="body1" color='red'>なし</Typography>
+                            )}
+                        </Box>
 
-                            <label>
-                                終了時間:
-                                <input
-                                    type="time"
-                                    value={editShift ? format(new Date(editShift.end_datetime), "HH:mm") : ""}
-                                    onChange={(e) => {
-                                        if (editShift && selectedShift) {
-                                            const newDateTime = `${selectedShift.date}T${e.target.value}:00`;
-                                            setEditShift({
-                                                ...editShift,
-                                                end_datetime: newDateTime,
-                                            });
-                                        }
-                                    }}
-                                />
-                            </label>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <TextField
+                                label="開始時間"
+                                type="time"
+                                value={editShift ? format(new Date(editShift.start_datetime), "HH:mm") : ""}
+                                onChange={(e) => {
+                                    if (editShift && selectedShift) {
+                                        const newDateTime = `${selectedShift.date}T${e.target.value}:00`;
+                                        setEditShift({
+                                            ...editShift,
+                                            start_datetime: newDateTime,
+                                        });
+                                    }
+                                }}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
 
-                            <label>
-                                メモ:
-                                <input
-                                    type="text"
-                                    value={editShift?.notes || ''}
-                                    onChange={(e) => {
-                                        if (editShift) {
-                                            setEditShift({
-                                                ...editShift,
-                                                notes: e.target.value,
-                                            });
-                                        }
-                                    }}
-                                />
-                            </label>
-                        </div>
+                            <TextField
+                                label="終了時間"
+                                type="time"
+                                value={editShift ? format(new Date(editShift.end_datetime), "HH:mm") : ""}
+                                onChange={(e) => {
+                                    if (editShift && selectedShift) {
+                                        const newDateTime = `${selectedShift.date}T${e.target.value}:00`;
+                                        setEditShift({
+                                            ...editShift,
+                                            end_datetime: newDateTime,
+                                        });
+                                    }
+                                }}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
 
+                        </Box>
 
-                        <button onClick={() => editShift && confirmShift(editShift)}>保存</button>
-                    </div>
+                        <Button
+                            variant="contained"
+                            onClick={() => editShift && confirmShift(editShift)}
+                            sx={{ mt: 2 }}
+                        >
+                            保存 or 更新
+                        </Button>
+                    </Box>
                 </EditModal>
             )}
         </div>
@@ -303,13 +295,3 @@ const wapperCss = css`
 `
 
 export default Edit;
-const modalContentWapper = css`
-    display: flex;
-    flex-direction: column;
-    /* gap: 1rem; */
-    /* padding: 1rem; */
-
-    h2{
-        font-size: 1.25rem;
-    }
-`;
