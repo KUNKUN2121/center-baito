@@ -1,4 +1,4 @@
 export const formatTime = (time: string) => {
-    const [hour, minute] = time.split(":");
-    return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
-    }
+    // 2025-11-30 16:30:00 -> 16:30
+    return time.split(" ")[1].substring(0, 5);
+}

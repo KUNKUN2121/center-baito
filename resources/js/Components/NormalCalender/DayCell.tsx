@@ -61,11 +61,11 @@ const DayCell: React.FC<Props> = ({ date, currentMonth, schedule, userId, isClos
       <div css={itemCss}>
         {
             // ユーザIDが一致するスケージュールを取得
-            isMe && schedule ? (
+            schedule ? (
                 <>
-                <p>{formatTime(schedule.start_datetime.split(" ")[1].substring(0, 5))}</p>
-                <span></span>
-                <p>{formatTime(schedule.end_datetime.split(" ")[1].substring(0, 5))}</p>
+                <p>{formatTime(schedule.start_datetime)}</p>
+                <span />
+                <p>{formatTime(schedule.end_datetime)}</p>
             </>
             ) : (
                 <></>
