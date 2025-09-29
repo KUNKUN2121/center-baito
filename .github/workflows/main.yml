@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2' 
+          php-version: '8.2'
           extensions: mbstring, dom, curl, gd, pdo_mysql # プロジェクトに必要な拡張機能
           coverage: none
 
@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: '18.x'
           cache: 'npm'
-      
+
       # 4. Composerのキャッシュを設定
       - name: Cache Composer packages
         id: composer-cache
@@ -57,7 +57,8 @@ jobs:
       - name: Install NPM dependencies and build
         run: |
           npm install
-          npm run build
+          npx vite build
+        #npm run build
 
       # 9. 完成したファイルをサーバーに転送 (rsyncを使用)
       - name: Deploy to server
@@ -72,10 +73,10 @@ jobs:
             RELEASE_PATH="/var/www/dev.kun.pink/project/center/releases/$(date +%Y%m%d%H%M%S)"
             SHARED_PATH="/var/www/dev.kun.pink/project/center/shared"
             CURRENT_PATH="/var/www/dev.kun.pink/project/center/current"
-            
+
             echo "Creating release directory: $RELEASE_PATH"
             mkdir -p $RELEASE_PATH
-            
+
             echo "Syncing files..."
             rsync -avz --delete \
               --exclude '.git' \
@@ -83,16 +84,16 @@ jobs:
               --exclude 'storage' \
               --exclude '.env' \
               ./ $RELEASE_PATH/
-            
+
             echo "Linking shared files and directories..."
             ln -nfs $SHARED_PATH/.env $RELEASE_PATH/.env
             ln -nfs $SHARED_PATH/storage $RELEASE_PATH/storage
-            
+
             echo "Running post-deploy commands..."
             php $RELEASE_PATH/artisan migrate --force
             php $RELEASE_PATH/artisan optimize:clear
-            
+
             echo "Switching symbolic link..."
             ln -nfs $RELEASE_PATH $CURRENT_PATH
-            
+
             echo "Deployment successful! 🎉"
