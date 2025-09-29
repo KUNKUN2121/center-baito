@@ -1,0 +1,98 @@
+name: Deploy to Development Server
+
+# mainブランチにプッシュされたときに実行
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. リポジトリのコードをチェックアウト
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. PHP環境をセットアップ (プロジェクトのバージョンに修正)
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2' 
+          extensions: mbstring, dom, curl, gd, pdo_mysql # プロジェクトに必要な拡張機能
+          coverage: none
+
+      # 3. Node.js環境をセットアップ (プロジェクトのバージョンに修正)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+      
+      # 4. Composerのキャッシュを設定
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      # 5. .envファイルをGitHub Secretsから作成
+      # GitHubリポジトリの Settings > Secrets and variables > Actions で ENV_FILE を作成しておく
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE }}" > .env
+
+      # 6. Composerの依存関係をインストール
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader
+
+      # 7. アプリケーションキーを生成
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # 8. JavaScript/CSSアセットをビルド
+      - name: Install NPM dependencies and build
+        run: |
+          npm install
+          npm run build
+
+      # 9. 完成したファイルをサーバーに転送 (rsyncを使用)
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}      # サーバーのIPアドレス
+          username: ${{ secrets.SERVER_USER }}   # SSHユーザー名
+          port: ${{ secrets.SERVER_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}    # SSH秘密鍵
+          script: |
+            set -e # エラーが発生したら処理を中断
+            RELEASE_PATH="/var/www/dev.kun.pink/project/center/releases/$(date +%Y%m%d%H%M%S)"
+            SHARED_PATH="/var/www/dev.kun.pink/project/center/shared"
+            CURRENT_PATH="/var/www/dev.kun.pink/project/center/current"
+            
+            echo "Creating release directory: $RELEASE_PATH"
+            mkdir -p $RELEASE_PATH
+            
+            echo "Syncing files..."
+            rsync -avz --delete \
+              --exclude '.git' \
+              --exclude '.github' \
+              --exclude 'storage' \
+              --exclude '.env' \
+              ./ $RELEASE_PATH/
+            
+            echo "Linking shared files and directories..."
+            ln -nfs $SHARED_PATH/.env $RELEASE_PATH/.env
+            ln -nfs $SHARED_PATH/storage $RELEASE_PATH/storage
+            
+            echo "Running post-deploy commands..."
+            php $RELEASE_PATH/artisan migrate --force
+            php $RELEASE_PATH/artisan optimize:clear
+            
+            echo "Switching symbolic link..."
+            ln -nfs $RELEASE_PATH $CURRENT_PATH
+            
+            echo "Deployment successful! 🎉"
