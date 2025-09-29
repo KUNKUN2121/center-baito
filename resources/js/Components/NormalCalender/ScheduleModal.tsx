@@ -98,7 +98,7 @@ const ScheduleModal: React.FC<Props> = ({ date, onClose, onSubmit,schedules,dele
                         onClose();
                     } }
                 >
-                    <span><span css={hisyoryStartTimeCss}>{formatTime(schedule.start_datetime.split(' ')[1])}</span> - {formatTime(schedule.end_datetime.split(' ')[1])}</span>
+                    <span><span css={hisyoryStartTimeCss}>{formatTime(schedule.start_datetime)}</span> - {formatTime(schedule.end_datetime)}</span>
                 </button>
             ))}
         </div>

@@ -42,9 +42,8 @@ class ShiftSubmissionController extends Controller
     /**
      * 希望シフトを追加する
      */
-    public function create(Request $request)
+    public function store(Request $request)
     {
-        // \dd($request->all());
         $request->validate([
             'newSchedule' => 'required|array',
             'newSchedule.start_datetime' => 'required|date',
@@ -88,14 +87,6 @@ class ShiftSubmissionController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(ShiftSubmissionRequest $request) // Use the custom request for validation
-    {
-
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(ShiftSubmission $shiftSubmission)
@@ -120,10 +111,21 @@ class ShiftSubmissionController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * 希望シフトを削除する
      */
     public function destroy(ShiftSubmission $shiftSubmission)
     {
-        //
+        $user = auth()->user();
+
+        // user_id、adminのどちらかでないと削除できない
+        if ($shiftSubmission->user_id !== $user->id && !$user->is_admin) {
+            return response()->json([
+                'status' => '403',
+                'message' => 'このシフトを削除する権限がありません。'
+            ], 403);
+        }
+        $shiftSubmission->delete();
+        return response()->json(null, 204); 
+
     }
 }

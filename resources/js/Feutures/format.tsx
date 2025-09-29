@@ -1,4 +1,6 @@
 export const formatTime = (time: string) => {
-    // 2025-11-30 16:30:00 -> 16:30
-    return time.split(" ")[1].substring(0, 5);
+    if (!time) return '';
+    // Handles both "YYYY-MM-DD HH:mm:ss" and "HH:mm:ss"
+    const timePart = time.includes(' ') ? time.split(' ')[1] : time;
+    return timePart.substring(0, 5);
 }

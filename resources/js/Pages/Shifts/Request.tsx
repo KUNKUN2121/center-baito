@@ -89,7 +89,7 @@ export default function Request() {
 
         console.log("Submitting new schedule:", newSchedule, "with scheduleId:", scheduleId);
 
-        axios.post('/api/shifts/create', {
+        axios.post('/api/shifts-submissions', {
             newSchedule,
             scheduleId
         }, {
@@ -106,6 +106,9 @@ export default function Request() {
         })
         .catch(error => {
             console.error("There was an error creating the shift:", error);
+            // エラー時に元の状態に戻す
+            fetchData();
+            alert("シフトの提出に失敗しました。もう一度お試しください。");
         });
 
 
@@ -115,7 +118,6 @@ export default function Request() {
 
 
 
-    console.log("Fetched data:", data);
     return (
         <div css={wapper}>
             <Head title="シフト希望" />

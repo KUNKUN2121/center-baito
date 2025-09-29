@@ -1,11 +1,14 @@
 import EditModal from '@/Components/Edit/EditModal';
 import ViewCalender from '@/Components/NormalCalender/ViewCalender';
 import ColumnCalender from '@/Components/Shifts/ColumnCalender';
+import NormalCalender from '@/Components/Shifts/NormalCalender';
 import RowCalender from '@/Components/Shifts/RowCalender';
+import CustomAppBar from '@/Layouts/AppBar';
 import { Submission, User } from '@/types/shifts';
 import { css } from '@emotion/react';
+import { Link } from '@inertiajs/react';
 import axios from 'axios';
-import { format, addDays, endOfMonth, startOfMonth } from 'date-fns';
+import { format, addDays, endOfMonth, startOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import React, { useEffect, useState } from 'react';
 
@@ -16,6 +19,7 @@ const ShiftsIndex: React.FC = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [confirmedShifts, setConfirmedShifts] = useState<Submission[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [viewMethod, setViewMethod] = useState('calendar');
 
     // 押されたシフトの情報
     const [selectedShift, setSelectedShift] = useState<{ confirmed: Submission | null } | null>(null);
@@ -61,27 +65,14 @@ const ShiftsIndex: React.FC = () => {
     }
 
 
-    const scheduleYear = schedule.length > 0 ? schedule[0].year : 2025;
-    const scheduleMonth = schedule.length > 0 ? String(schedule[0].month).padStart(2, '0') : "10";
-    const requestMonth = `${scheduleYear}${scheduleMonth}`; // YYYYMM形式で指定
-
-    // const requestMonth = "202510"; // YYYYMM形式で指定
-    // カレンダーの初期化処理
-    const currentDate = new Date(requestMonth.slice(0, 4) + "-" + requestMonth.slice(4, 6) + "-01");
-    const start = startOfMonth(startOfMonth(currentDate));
-    const end = endOfMonth(endOfMonth(currentDate));
-    const days = [];
-    let date = start;
-
-    while (date <= end) {
-        days.push(date);
-        date = addDays(date, 1);
-    }
-
+    const scheduleYear: number = schedule.length > 0 ? schedule[0].year : 2025;
+    const scheduleMonth: number = schedule.length > 0 ? schedule[0].month : 10;
+    const requestYearMonth : number = Number(`${scheduleYear}${String(scheduleMonth).padStart(2, '0')}`); // YYYYMM形式で指定
 
 
     return (
         <div css={wapperCss}>
+            <CustomAppBar />
             <div css={titleWapperCss}>
                 <h1 style={{
                     fontSize: '1.5rem', fontWeight: 'bold', margin: '20px'
@@ -92,10 +83,10 @@ const ShiftsIndex: React.FC = () => {
 
             <div>
                 <label htmlFor="viewMethod">ビュー </label>
-                <select id="viewMethod" name="viewMethod">
+                <select id="viewMethod" name="viewMethod" value={viewMethod} onChange={(e) => setViewMethod(e.target.value)}>
+                    <option value="calendar">カレンダー表示</option>
                     <option value="row">横表示</option>
                     <option value="column">縦表示</option>
-                    <option value="calendar">カレンダー表示</option>
                 </select>
 
                 <label htmlFor="userViewMethod">ユーザー</label>
@@ -105,13 +96,27 @@ const ShiftsIndex: React.FC = () => {
                 </select>
             </div>
 
-            <RowCalender
-                users={users}
-                days={days}
-                confirmedShifts={confirmedShifts}
-                handleSubmitModal={handleSubmitModal}
-                setSelectedShift={setSelectedShift}
-            />
+            {viewMethod === 'row' &&
+                <RowCalender
+                    users={users}
+                    requestYearMonth={requestYearMonth}
+                    confirmedShifts={confirmedShifts}
+                    handleSubmitModal={handleSubmitModal}
+                    setSelectedShift={setSelectedShift}
+                />
+            }
+            {viewMethod === 'calendar' &&
+                <NormalCalender
+                    users={users}
+                    requestYearMonth={requestYearMonth}
+                    confirmedShifts={confirmedShifts}
+                    handleSubmitModal={handleSubmitModal}
+                    setSelectedShift={setSelectedShift}
+                />
+            }
+            {viewMethod === 'column' &&
+                <p>作成中...</p>
+                }
 
 
 

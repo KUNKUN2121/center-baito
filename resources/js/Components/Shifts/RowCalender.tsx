@@ -6,7 +6,7 @@ import React from 'react';
 
 interface RowCalenderProps {
     users: User[];
-    days: Date[];
+    requestYearMonth: number;
     confirmedShifts: Submission[];
     handleSubmitModal: (isOpen: boolean) => void;
     setSelectedShift: (shift: { confirmed: Submission | null } | null) => void;
@@ -14,17 +14,36 @@ interface RowCalenderProps {
 
 const RowCalender: React.FC<RowCalenderProps> = ({
     users,
-    days,
+    requestYearMonth,
     confirmedShifts,
     handleSubmitModal,
     setSelectedShift,
 }) => {
+
+    const days: Date[] = [];
+    const currentDate = new Date(String(requestYearMonth).slice(0, 4) + "-" + String(requestYearMonth).slice(4, 6) + "-01");
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    // 月の日数分ループしてdaysに追加
+    const d = new Date(startOfMonth);
+    for (let d = startOfMonth; d <= endOfMonth; d.setDate(d.getDate() + 1)) {
+        days.push(new Date(d));
+    }
+
     return (
         <div css={tableWapperCss}>
             <table>
                 <thead>
                     <tr>
-                        <th>名前</th>
+                        <th
+                            css={css`
+                                width: 84px !important;
+                                @media print {
+                                    /* width: 40px !important; */
+                                }
+                            `}
+                        >名前</th>
                         {days.map((day, index) => (
                             <th key={index}>
                                 <p>{format(day, "d", { locale: ja })}</p>
@@ -80,6 +99,7 @@ const tableWapperCss = css`
         width: 100%;
         margin: 20px 0;
         table-layout: fixed;
+        min-width: 1200px;
     }
 
     th, td {
