@@ -16,7 +16,7 @@ export default function Request() {
     // fetchしてデータを取得する
     const fetchData = async () => {
         try {
-            const response = await axios.get('/api/shifts/request', {
+            const response = await axios.get('/api/shifts-submissions', {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',

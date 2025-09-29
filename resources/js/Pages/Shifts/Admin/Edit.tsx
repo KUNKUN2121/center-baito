@@ -32,7 +32,7 @@ const Edit: React.FC = () => {
 
     // 初期データ取得
     function getIndex() {
-        axios.get('/api/shifts/admin/edit/show')
+        axios.get('/api/admin/shifts/edit')
             .then(response => {
                 console.log("Fetched user data:", response.data);
                 setSchedule(response.data.schedule);
@@ -75,7 +75,7 @@ const Edit: React.FC = () => {
 
         // サーバーに保存
         // // schedule_id, user_id, start_datetime, end_datetime, notes を送信
-        axios.post('/api/shifts/admin/edit/confirm', {
+        axios.post('/api/admin/shifts/edit/confirm', {
             user_id: submission.user_id,
             schedule_id: submission.schedule_id,
             start_datetime: submission.start_datetime,
@@ -155,7 +155,7 @@ const Edit: React.FC = () => {
         }
 
         // 確定アクションをサーバーに送信
-        axios.post('/api/shifts/admin/edit/publish', {
+        axios.post('/api/admin/shifts/edit/publish', {
             schedule_id: schedule.id,
         })
             .then(response => {

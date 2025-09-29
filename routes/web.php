@@ -42,15 +42,17 @@ Route::get('/shifts/request', function () {
     return Inertia::render('Shifts/Request');
 })->middleware(['auth', 'verified'])->name('shifts.request');
 
-// 管理パネル
-Route::get('/shifts/admin', function () {
-    return Inertia::render('Shifts/Admin');
-})->middleware(['auth', 'verified'])->name('shifts.admin');
 
-// 管理パネル Editor
-Route::get('/shifts/admin/edit', function () {
-    return Inertia::render('Shifts/Admin/Edit');
-})->middleware(['auth', 'verified'])->name('shifts.admin.editor');
+// --- ADMIN用 ---
+Route::prefix('admin')->group(function () {
+    Route::get('/shifts', function () {
+        return Inertia::render('Shifts/Admin');
+    })->middleware(['auth', 'verified'])->name('shifts.admin');
+    Route::get('/shifts/edit', function () {
+        return Inertia::render('Shifts/Admin/Edit');
+    })->middleware(['auth', 'verified'])->name('shifts.admin.editor');
+
+});
 
 
 
@@ -70,33 +72,33 @@ Route::middleware('auth')->group(function () {
         // 一般ユーザシフト 閲覧用
         Route::get('shifts/show/{yearMonth?}', [ShiftController::class, 'show']);
 
+        // --- シフト希望用 ---
         //
-        // シフト希望用
-        //
-        // 希望シフトのビューを取得する
-        Route::get('shifts/request', [ShiftSubmissionController::class, 'index']);
-        // 希望シフトのPOSTを受け取る
-        Route::post('shifts/create', [ShiftSubmissionController::class, 'create']);
+        // GET /shifts-submissions 一覧取得
+        // GET /shifts-submissions/{id} 単一取得
+        // POST /shifts-submissions 新規作成
+        // PUT /shifts-submissions/{id} 更新
+        // DELETE /shifts-submissions/{id} 削除
+        Route::apiResource('/shifts-submissions', ShiftSubmissionController::class);
 
         //
-        // Editor用
+        // --- Admin用 ---
         //
-        // Editの表示
-        Route::get('/shifts/admin/edit/show', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.index');
-        // 確定シフトの保存
-        Route::post('/shifts/admin/edit/confirm', [EditController::class, 'confirm'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.confirm');
-        // シフトの確定公開
-        Route::post('/shifts/admin/edit/publish', [EditController::class, 'publish'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.publish');
+        Route::prefix('admin')->group(function () {
+            // Editor用
+            Route::get('/shifts/edit', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.edit');
+            Route::post('/shifts/edit/confirm', [EditController::class, 'confirm'])->middleware(['auth', 'verified'])->name('shifts.admin.confirm');
+            Route::post('/shifts/edit/publish', [EditController::class, 'publish'])->middleware(['auth', 'verified'])->name('shifts.admin.publish');
+        });
+
+
 
 
         // シフト変更リクエスト
-        Route::post('/shifts/change/request', [ShiftChangeRequestsController::class, 'create'])->middleware(['auth', 'verified'])->name('shifts.change');
-        Route::get('/shifts/change', [ShiftChangeRequestsController::class, 'update'])->middleware(['auth', 'verified'])->name('shifts.change');
+        // Route::post('/shifts/change/request', [ShiftChangeRequestsController::class, 'create'])->middleware(['auth', 'verified'])->name('shifts.change');
+        // Route::get('/shifts/change', [ShiftChangeRequestsController::class, 'update'])->middleware(['auth', 'verified'])->name('shifts.change');
 
     });
-
-    // シフト希望提出のCRUD操作
-    Route::apiResource('shift-submissions', ShiftSubmissionController::class);
 });
 
 

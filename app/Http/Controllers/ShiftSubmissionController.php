@@ -92,10 +92,7 @@ class ShiftSubmissionController extends Controller
      */
     public function store(ShiftSubmissionRequest $request) // Use the custom request for validation
     {
-        $user = auth()->user();
-        $shiftSubmission = $user->shiftSubmissions()->create($request->validated());
 
-        return response()->json($shiftSubmission, 201); // 201 Created
     }
 
     /**
