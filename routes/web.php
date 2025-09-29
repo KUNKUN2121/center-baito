@@ -69,6 +69,9 @@ Route::middleware('auth')->group(function () {
             return auth()->user();
         });
 
+
+        Route::get('/dashboard', [ShiftController::class, 'dashboard']);
+
         // 一般ユーザシフト 閲覧用
         // GET /api/shifts?month=2025-10 のように、クエリで年月を指定
         Route::get('shifts', [ShiftController::class, 'index']);

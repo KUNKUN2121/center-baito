@@ -61,7 +61,11 @@ const ShiftsIndex: React.FC = () => {
     }
 
     if(users.length === 0){
-        return <div>Loading...</div>;
+        return   (
+            <div>
+                <CustomAppBar />
+            </div>
+        );
     }
 
 

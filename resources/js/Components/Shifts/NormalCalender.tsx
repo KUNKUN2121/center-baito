@@ -89,40 +89,50 @@ const NormalCalender: React.FC<NormalCalenderProps> = ({
     };
 
     return (
-        <div>
-            <div css={calendarGridCss}>
-                {['日', '月', '火', '水', '木', '金', '土'].map((day, index) => (
-                    <div key={day} css={headerCellCss}>
-                        {day}
-                    </div>
-                ))}
-            </div>
-            <div css={calendarGridCss}>
-                {days.map(day => {
-                    const dayString = format(day, 'yyyy-MM-dd');
-                    const shiftsForDay = confirmedShifts.filter(
-                        shift =>
-                            format(new Date(shift.start_datetime), 'yyyy-MM-dd') === dayString &&
-                            shift.user_id === loggedInUserId
-                    );
-                    const isHoliday = holidays.hasOwnProperty(dayString);
+        <div css={wapperCss}>
+            <div>
+                <div css={calendarGridCss}>
+                    {['日', '月', '火', '水', '木', '金', '土'].map((day, index) => (
+                        <div key={day} css={headerCellCss}>
+                            {day}
+                        </div>
+                    ))}
+                </div>
+                <div css={calendarGridCss}>
+                    {days.map(day => {
+                        const dayString = format(day, 'yyyy-MM-dd');
+                        const shiftsForDay = confirmedShifts.filter(
+                            shift =>
+                                format(new Date(shift.start_datetime), 'yyyy-MM-dd') === dayString &&
+                                shift.user_id === loggedInUserId
+                        );
+                        const isHoliday = holidays.hasOwnProperty(dayString);
 
-                    return (
-                        <DayCell
-                            key={dayString}
-                            date={day}
-                            shifts={shiftsForDay}
-                            onClick={() => handleDayClick(shiftsForDay.length > 0 ? shiftsForDay[0] : null)}
-                            isHoliday={isHoliday}
-                        />
-                    );
-                })}
+                        return (
+                            <DayCell
+                                key={dayString}
+                                date={day}
+                                shifts={shiftsForDay}
+                                onClick={() => handleDayClick(shiftsForDay.length > 0 ? shiftsForDay[0] : null)}
+                                isHoliday={isHoliday}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+            <div>
+                // Todo: ここに詳細おく？
             </div>
         </div>
     );
 };
 
 export default NormalCalender;
+
+const wapperCss = css`
+    max-width: 1000px;
+    margin: 0 auto;
+`;
 
 const calendarGridCss = css`
     display: grid;

@@ -1,16 +1,20 @@
 import { Head, Link } from '@inertiajs/react';
 import { css } from '@emotion/react';
 import axios from 'axios';
+import CustomAppBar from '@/Layouts/AppBar';
+import { useEffect, useState } from 'react';
+import { Submission } from '@/types/shifts';
+
+type DashboardData = {
+    status?: string;
+    nextShift: Submission | null;
+    notices: { id: number; message: string }[];
+    isSubmittingOpen: boolean;
 
 
-// Emotionでスタイル付けされたコンポーネント
-const AppBar = ({ children }: { children: React.ReactNode }) => (
-    <header css={styles.appBar}>
-        <nav css={styles.nav}>
-            {children}
-        </nav>
-    </header>
-);
+};
+
+
 
 const Card = ({ children, isGradient }: { children: React.ReactNode, isGradient?: boolean }) => (
     <div css={[styles.cardBase, isGradient && styles.gradientCard]}>
@@ -18,8 +22,18 @@ const Card = ({ children, isGradient }: { children: React.ReactNode, isGradient?
     </div>
 );
 
-const Button = ({ children, href, variant = 'primary' }: { children: React.ReactNode, href: string, variant?: 'primary' | 'secondary' }) => (
-    <Link href={href} css={[styles.buttonBase, styles.buttonVariants[variant]]}>
+const Button = ({
+    children,
+    href,
+    variant = 'primary',
+    css: cssProp,
+}: {
+    children: React.ReactNode;
+    href: string;
+    variant?: 'primary' | 'secondary';
+    css?: any;
+}) => (
+    <Link href={href} css={[styles.buttonBase, styles.buttonVariants[variant], cssProp]}>
         {children}
     </Link>
 );
@@ -37,16 +51,12 @@ export default function Dashboard() {
         { id: 2, message: '新しいドリンクの研修を行います。参加可能な方は連絡ください。' },
     ];
 
-    const navLinks = [
-        { name: 'シフト', path: '/shifts' },
-        { name: 'シフト提出', path: '/shifts/request' },
-    ];
-
+    const [data, setData] = useState<DashboardData | null>(null);
 
     // fetchしてデータを取得する
     const fetchData = async () => {
         // axiosで個人シフトを取得する
-        const response = await axios.get('/api/shifts/personal', {
+        const response = await axios.get('/api/dashboard', {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -54,21 +64,27 @@ export default function Dashboard() {
             withCredentials: true, // クッキーを含める
         });
         console.log(response.data);
+        setData(response.data);
     };
+
+    useEffect (() => {
+        fetchData();
+    }, []);
+
+    if(!data) {
+        return (
+            <div>
+                <CustomAppBar />
+            </div>
+        )
+    }
 
 
 
     return (
         <div>
             <Head title="Dashboard" />
-            <AppBar>
-                <Link href="/dashboard" css={styles.logo}>シフト管理</Link>
-                <div css={styles.navLinks}>
-                    {navLinks.map(link => (
-                        <Link key={link.name} href={link.path} css={styles.navLink}> {link.name} </Link>
-                    ))}
-                </div>
-            </AppBar>
+            <CustomAppBar />
 
             <main css={styles.container}>
 
@@ -76,7 +92,10 @@ export default function Dashboard() {
                 <Card isGradient>
                     <h3 css={styles.cardTitle}>次回出勤</h3>
                     <p css={styles.shiftTime}>
-                        {nextShift.date} {nextShift.startTime} - {nextShift.endTime}
+                        {/* 日付はstart_datetimeから日付を取得する*/}
+                        {data.nextShift ? `${new Date(data.nextShift.start_datetime).getMonth() + 1}/${new Date(data.nextShift.start_datetime).getDate()}` : nextShift.date} {' '}
+                        {data.nextShift ? `${new Date(data.nextShift.start_datetime).getHours()}:${String(new Date(data.nextShift.start_datetime).getMinutes()).padStart(2, '0')}` : nextShift.startTime} - {' '}
+                        {data.nextShift ? `${new Date(data.nextShift.end_datetime).getHours()}:${String(new Date(data.nextShift.end_datetime).getMinutes()).padStart(2, '0')}` : nextShift.endTime}
                     </p>
                 </Card>
 
@@ -88,7 +107,8 @@ export default function Dashboard() {
                             <Button href="/shifts" variant="primary">
                                 シフトを確認
                             </Button>
-                            <Button href="/shifts/request" variant="secondary">
+                            {/* // isSubmittingOpenがfalseの場合 opacityを下げる */}
+                            <Button href="/shifts/request" variant="secondary" css={data.isSubmittingOpen ? {} : { opacity: 0.5 }}>
                                 シフトを提出
                             </Button>
                         </div>

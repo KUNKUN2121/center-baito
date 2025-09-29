@@ -157,6 +157,10 @@ const confirmedWapperCss = css`
         p {
             font-size: 8px !important;
         }
+        th, td {
+            padding: 0 !important;
+        }
+
         /* 印刷時に背景色は不要な場合が多いので白にしています */
     }
 `;

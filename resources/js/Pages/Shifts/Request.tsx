@@ -5,6 +5,7 @@ import ViewCalender from '@/Components/NormalCalender/ViewCalender';
 import { Schedule } from '@/types/shifts';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import CustomAppBar from '@/Layouts/AppBar';
 
 // シフト希望画面
 export default function Request() {
@@ -66,16 +67,19 @@ export default function Request() {
     if(scheduleId === 0){
         return <div>
             <Head title="シフト希望" />
+            <CustomAppBar />
             現在シフト募集中ではありません。
             </div>;
     }
 
 
     if(!data){
-        return <div>
-            <Head title="シフト希望" />
-            Loading...
-            </div>;
+        return (
+            <div>
+                <Head title="シフト希望" />
+                <CustomAppBar />
+            </div>
+        )
     }
 
 

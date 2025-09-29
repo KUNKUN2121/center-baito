@@ -19,7 +19,7 @@ class ShiftController extends Controller
 
         // クエリパラメータから month (YYYY-MM形式) を取得
         $yearMonth = $request->input('month');
-        
+
 
         if ($yearMonth) {
             // YYYY-MM形式を想定
@@ -70,6 +70,31 @@ class ShiftController extends Controller
             'schedules' => $schedules,
             'confirmedShifts' => $confirmedShifts,
             'users' => $users,
+        ], 200);
+    }
+
+
+    // ダッシュボード用のデータ取得
+    public function dashboard(Request $request)
+    {
+        $user = $request->user();
+
+        // 次回出勤の予定を取得 start_datetimeが今日以降のもののうち、最も近いもの
+        $nextShift = Shift::where('user_id', $user->id)
+            ->where('start_datetime', '>=', now())
+            ->orderBy('start_datetime', 'asc')
+            ->first();
+        // お知らせを取得
+        $notices = []; // ここにお知らせの取得ロジックを追加
+
+        // 現在シフト募集中か確認する openになっているものがあればtrue
+        $currentSchedule = Schedule::where('status', 'open')->first();
+
+        return response()->json([
+            'status' => '200',
+            'nextShift' => $nextShift,
+            'notices' => $notices,
+            'isSubmittingOpen' => $currentSchedule ? true : false,
         ], 200);
     }
 
