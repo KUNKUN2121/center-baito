@@ -20,7 +20,7 @@ createInertiaApp({
 
         root.render(
             <>
-            <AppBar />
+            {/* <AppBar /> */}
             <App {...props} />
             </>
         );

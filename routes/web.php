@@ -67,17 +67,20 @@ Route::middleware('auth')->group(function () {
             return auth()->user();
         });
 
-        // 一般ユーザシフトVIEW
+        // 一般ユーザシフト 閲覧用
         Route::get('shifts/show/{yearMonth?}', [ShiftController::class, 'show']);
 
-
+        //
+        // シフト希望用
+        //
+        // 希望シフトのビューを取得する
         Route::get('shifts/request', [ShiftSubmissionController::class, 'index']);
+        // 希望シフトのPOSTを受け取る
         Route::post('shifts/create', [ShiftSubmissionController::class, 'create']);
 
         //
         // Editor用
         //
-
         // Editの表示
         Route::get('/shifts/admin/edit/show', [EditController::class, 'show'])->middleware(['auth', 'verified'])->name('shifts.admin.editor.index');
         // 確定シフトの保存
