@@ -70,7 +70,8 @@ Route::middleware('auth')->group(function () {
         });
 
         // 一般ユーザシフト 閲覧用
-        Route::get('shifts/show/{yearMonth?}', [ShiftController::class, 'show']);
+        // GET /api/shifts?month=2025-10 のように、クエリで年月を指定
+        Route::get('shifts', [ShiftController::class, 'index']);
 
         // --- シフト希望用 ---
         //

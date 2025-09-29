@@ -41,7 +41,9 @@ const ShiftsIndex: React.FC = () => {
 
     // 初期データ取得
     function getIndex() {
-        axios.get('/api/shifts/show')
+        // TODO: 将来的に年月を切り替えるUIを実装し、
+        // params: { month: 'YYYY-MM' } を渡すようにする
+        axios.get('/api/shifts')
             .then(response => {
                 console.log("Fetched user data:", response.data);
                 setSchedule(response.data.schedules);
@@ -50,7 +52,7 @@ const ShiftsIndex: React.FC = () => {
                 console.log("schedule", schedule);
             })
             .catch(error => {
-                console.error("api/shifts/edit", error);
+                console.error("api/shifts", error);
             });
     }
 

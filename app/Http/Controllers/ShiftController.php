@@ -13,16 +13,24 @@ class ShiftController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function show(Request $request, $yearMonth = null)
+    public function index(Request $request)
     {
         $query = Schedule::query()->where('status', 'published');
+
+        // クエリパラメータから month (YYYY-MM形式) を取得
+        $yearMonth = $request->input('month');
         
+
         if ($yearMonth) {
-            $year = substr($yearMonth, 0, 4);
-            $month = substr($yearMonth, 4, 2);
-            $query->where('year', $year)->where('month', $month);
+            // YYYY-MM形式を想定
+            $parts = explode('-', $yearMonth);
+            if (count($parts) === 2) {
+                $year = $parts[0];
+                $month = $parts[1];
+                $query->where('year', $year)->where('month', $month);
+            }
         } else {
-            // 最新の公開済みスケジュールを取得
+            // monthパラメータがない場合は、最新の公開済みスケジュールを取得
             $latestSchedule = Schedule::where('status', 'published')
                 ->orderBy('year', 'desc')
                 ->orderBy('month', 'desc')
